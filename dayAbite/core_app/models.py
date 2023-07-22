@@ -1,31 +1,45 @@
-from django.db import models
+from datetime import datetime
+from django.db.models import Model, ForeignKey, DateTimeField, DecimalField, TextField, CASCADE, CharField
+from custom_user.models import User
 
-from django.db import models
 
 
-class User(models.Model):
-    email = models.EmailField(unique=True)
-    name = models.CharField(max_length=255)
-    age = models.IntegerField()
+class TimeStampedModel(Model):
+    """
+    An abstract base class model that provides self-updating
+    `created_at` and `updated_at` fields.
+    """
 
-class BasalInsulin(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    dosage = models.DecimalField(max_digits=5, decimal_places=2)
-    time = models.TimeField()
+    created_at = DateTimeField(auto_now_add=True )
+    updated_at = DateTimeField(auto_now=True)
 
-class ShortTermInsulin(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    dosage = models.DecimalField(max_digits=5, decimal_places=2)
-    time = models.TimeField()
+    class Meta:
+        abstract = True
+        ordering = ["-updated_at"]
+        get_latest_by = "-updated_at"
 
-class Measurement(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    value = models.DecimalField(max_digits=5, decimal_places=2)
-    timestamp = models.DateTimeField()
-    feeling = models.TextField()
+class InsulinShot(TimeStampedModel):
+    user = ForeignKey(User, on_delete=CASCADE, related_name='user_insulin_shots')
+    INSULIN_TYPE_CHOICES = [
+        ('Short-term', 'Short-term, fast-acting insulin'),
+        ('Basal', 'Basal, long-term acting insulin')
+    ]
+    insulin_type = CharField(max_length=20, choices=INSULIN_TYPE_CHOICES, null=True)
+    dosage = DecimalField(max_digits=5, decimal_places=2)
 
-class BitesSuggestion(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    blood_glucose_level = models.DecimalField(max_digits=5, decimal_places=2)
-    bitess_amount = models.DecimalField(max_digits=5, decimal_places=2)
+    
 
+
+class Measurement(TimeStampedModel):
+    user = ForeignKey(User, on_delete=CASCADE, related_name='user_measurements')
+    value = DecimalField(max_digits=5, decimal_places=2)
+    feeling = TextField()
+
+
+class BitesConsumedEntry(TimeStampedModel):
+    """One Bite equals 10 carbs intake."""
+    user = ForeignKey(User, on_delete=CASCADE, related_name='bites_consumed_entries')
+    bites_amount = DecimalField(max_digits=5, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.user.username}'s Carbs Entry - {self.created_at}"
