@@ -40,6 +40,7 @@ class BitesConsumedEntry(TimeStampedModel):
     """One Bite equals 10 carbs intake."""
     user = ForeignKey(User, on_delete=CASCADE, related_name='bites_consumed_entries')
     bites_amount = DecimalField(max_digits=5, decimal_places=2)
+    what_you_ate = TextField()
 
     def __str__(self):
         return f"{self.user.username}'s Carbs Entry - {self.created_at}"

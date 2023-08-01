@@ -1,9 +1,10 @@
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from custom_user.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from .forms import BloodGlucoseMeasurementForm, BitesForm, InsulinShotForm
+from django.contrib.auth.decorators import login_required
 
 from django.shortcuts import render, redirect
 from .models import BloodGlucoseMeasurement, BitesConsumedEntry, InsulinShot
@@ -128,11 +129,14 @@ def my_measurements_view(request):
 
     return render(request, 'my_measurements.html', context)
 
+@login_required
 def my_profile_view(request):
     user = request.user
+    fields = [field for field in user._meta.get_fields() if field.concrete]
 
     context = {
         'user': user,
+        'fields': fields,
     }
 
     return render(request, 'my_profile.html', context)
@@ -145,3 +149,45 @@ def encyclopedia_view(request):
     }
 
     return render(request, 'encyclopedia.html', context)
+
+@login_required
+def edit_measurement(request, model, pk):
+    measurement = None
+    if model == 'blood_glucose':
+        measurement = get_object_or_404(BloodGlucoseMeasurement, pk=pk)
+        form = BloodGlucoseMeasurementForm(request.POST or None, instance=measurement)
+    elif model == 'insulin_shot':
+        measurement = get_object_or_404(InsulinShot, pk=pk)
+        form = InsulinShotForm(request.POST or None, instance=measurement)
+    elif model == 'bites_entry':
+        measurement = get_object_or_404(BitesConsumedEntry, pk=pk)
+        form = BitesForm(request.POST or None, instance=measurement)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            return redirect('my_measurements')
+
+    template_name = 'edit_measurement.html'
+    context = {'form': form, 'measurement': measurement, 'model': model}
+    return render(request, template_name, context)
+
+@login_required
+def delete_measurement(request, measurement_type, measurement_id):
+    user = request.user
+
+    if measurement_type == 'blood_glucose':
+        measurement = get_object_or_404(BloodGlucoseMeasurement, pk=measurement_id, user=user)
+    elif measurement_type == 'insulin_shot':
+        measurement = get_object_or_404(InsulinShot, pk=measurement_id, user=user)
+    elif measurement_type == 'bites_entry':
+        measurement = get_object_or_404(BitesConsumedEntry, pk=measurement_id, user=user)
+    else:
+        return render(request, 'error.html', {'error': 'Invalid measurement type.'})
+
+    if request.method == 'POST':
+        measurement.delete()
+        messages.success(request, 'Measurement deleted successfully.')
+        return redirect('my-measurements')
+
+    return render(request, 'delete_measurement.html', {'measurement': measurement})

@@ -10,4 +10,6 @@ urlpatterns = [
     path("my-measurements/", views.my_measurements_view, name="my-measurements"),
     path("my-profile/", views.my_profile_view, name="my-profile"),
     path("encyclopedia/", views.encyclopedia_view, name="encyclopedia"),
+    path('edit-measurement/<str:model>/<int:pk>/', views.edit_measurement, name='edit_measurement'),
+    path('delete-measurement/<str:measurement_type>/<int:measurement_id>/', views.delete_measurement, name='delete_measurement'),
 ]

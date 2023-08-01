@@ -9,7 +9,7 @@ class BloodGlucoseMeasurementAdmin(admin.ModelAdmin):
     list_display = ('user', 'value', 'feeling', 'created_at', 'updated_at')
 
 class BitesConsumedEntryAdmin(admin.ModelAdmin):
-    list_display = ('user', 'bites_amount', 'created_at', 'updated_at')
+    list_display = ('user', 'bites_amount', 'what_you_ate', 'created_at', 'updated_at')
 
 
 admin.site.register(InsulinShot, InsulinShotAdmin)
