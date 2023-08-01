@@ -1,46 +1,93 @@
-{% load static %}
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello Page</title>
-    <link rel="stylesheet" href="{% static 'bootstrap5/css/bootstrap.min.css' %}">
+{% block content %}
+    <div class="jumbotron">
+        {% if user.is_authenticated %}
+            <h1 style="background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 30px; border-radius: 10px;">
+                Hello, {{ user.first_name }}!<br>
+                Welcome to Day-a-bite
+            </h1>
+        {% else %}
+            <h1 style="background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 30px; border-radius: 10px;">
+                Hello, earthling!<br>
+                Welcome to Day-a-bite
+            </h1>
+        {% endif %}
+        <p class="lead">Your simple diary app for diabetes management.</p>
+        <div class="plus-container" onclick="toggleForms()">
+            <div class="plus-horizontal"></div>
+            <div class="plus-vertical"></div>
+        </div>
+    </div>
+    <div class="forms-container" id="forms-container" style="display: none;">
+        <h3>Add Your Measurements:</h3>
+        <form method="post">
+            {% csrf_token %}
+            {{ blood_glucose_form.as_p }}
+            <button type="submit" style="background-color: green; color: white; padding: 10px 20px; border: none; cursor: pointer;">Submit Blood Glucose Level</button>
+        </form>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ bites_form.as_p }}
+            <button type="submit" style="background-color: orange; color: white; padding: 10px 20px; border: none; cursor: pointer;">Submit Bites Eaten</button>
+        </form>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ insulin_shot_form.as_p }}
+            <button type="submit" style="background-color: red; color: white; padding: 10px 20px; border: none; cursor: pointer;">Submit Insulin Shot</button>
+        </form>
+    </div>
+
     <style>
         body {
             background-color: #f8f9fa;
         }
-        .container {
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
         .jumbotron {
             text-align: center;
             background-color: #fff;
-            border-radius: 10px;
-            padding: 30px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .forms-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .plus-container {
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 0 auto; /* Add this line to center horizontally */
+        }
+        .plus-horizontal, .plus-vertical {
+            background-color: black;
+            width: 60px;
+            height: 6px;
+            border-radius: 3px;
+        }
+        .plus-vertical {
+            position: absolute;
+            transform: rotate(90deg);
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="jumbotron">
-            {% if user.is_authenticated %}
-                <h1>Hello, {{ user.first_name }}! 
-                    <br> Welcome to Day-a-bite</h1>
-            {% else %}
-                <h1>Hello, earthling!
-                    <br>Welcome to Day-a-bite</h1>
-            {% endif %}
-            <p class="lead">Your simple diary app for diabetes management.</p>
-            <a href="#" class="btn btn-primary btn-lg">Get Started</a>
-        </div>
-    </div>
 
-    <script src="{% static 'bootstrap5/js/bootstrap.bundle.min.js' %}"></script>
-</body>
-</html>
+    <script>
+        // JavaScript to toggle the visibility of the forms
+        function toggleForms() {
+            var formsContainer = document.getElementById("forms-container");
+            if (formsContainer.style.display === "none") {
+                formsContainer.style.display = "block";
+            } else {
+                formsContainer.style.display = "none";
+            }
+        }
+    </script>
+{% endblock %}

@@ -30,8 +30,8 @@ class InsulinShot(TimeStampedModel):
     
 
 
-class Measurement(TimeStampedModel):
-    user = ForeignKey(User, on_delete=CASCADE, related_name='user_measurements')
+class BloodGlucoseMeasurement(TimeStampedModel):
+    user = ForeignKey(User, on_delete=CASCADE, related_name='user_blood_glucose_measurements')
     value = DecimalField(max_digits=5, decimal_places=2)
     feeling = TextField()
 
