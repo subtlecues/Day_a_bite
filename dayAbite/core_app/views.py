@@ -83,6 +83,12 @@ def registration_handler(request):
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
         date_of_birth = request.POST['date_of_birth']
+        
+        # Check if the email is already in use
+        if User.objects.filter(email=email).exists():
+            return render(request, 'register_user.html', {'error': 'Email address already in use'})
+
+        # Create a new user
         user = User.objects.create_user(
             email=email,
             password=password,
@@ -91,7 +97,11 @@ def registration_handler(request):
             date_of_birth=date_of_birth
         )
 
-        user.save()
+        # Log the user in
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('login')  # Redirect to the login page
 
     return render(request, 'register_user.html')
 
@@ -110,6 +120,8 @@ def login_handler(request):
 
     # If it's a GET request, show the login form
     return render(request, 'login.html')
+
+
 def logout_handler(request):
     logout(request)
     return render(request, 'hello.html')
