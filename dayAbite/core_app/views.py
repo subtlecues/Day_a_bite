@@ -1,11 +1,12 @@
-from django.http import HttpResponse
+from datetime import datetime, timedelta
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from custom_user.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from .forms import BloodGlucoseMeasurementForm, BitesForm, InsulinShotForm
 from django.contrib.auth.decorators import login_required
-
+from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render, redirect
 from .models import BloodGlucoseMeasurement, BitesConsumedEntry, InsulinShot
 from .forms import BloodGlucoseMeasurementForm, BitesForm, InsulinShotForm
@@ -46,7 +47,6 @@ def add_insulin_shot(request):
 
 
 def index(request):
-    print("View function 'index' is called.")
     blood_glucose_form = BloodGlucoseMeasurementForm(request.POST or None)
     bites_form = BitesForm(request.POST or None)
     insulin_shot_form = InsulinShotForm(request.POST or None)
@@ -203,3 +203,67 @@ def delete_measurement(request, measurement_type, measurement_id):
         return redirect('my-measurements')
 
     return render(request, 'delete_measurement.html', {'measurement': measurement})
+
+@require_GET
+def get_measurements(request):
+    user = request.user
+
+    days_string = request.GET.get("days", 7)
+    days= int(days_string)
+    
+    blood_glucose_measurements = BloodGlucoseMeasurement.objects.filter(
+        user=user,
+        created_at__gte=datetime.now() - timedelta(days),
+    )
+
+    measurements_array = []
+    for measurement in blood_glucose_measurements:
+        measurements_array.append({
+            "created_at": measurement.created_at,
+            "value": measurement.value,
+        })
+
+    return JsonResponse(measurements_array, safe=False)
+
+@require_GET
+def get_shots(request):
+    user = request.user
+
+    days_string = request.GET.get("days", 7)
+    days= int(days_string)
+
+    shots = InsulinShot.objects.filter(
+        user=user,
+        created_at__gte=datetime.now() - timedelta(days),
+    )
+
+    shots_array = []
+    for shot in shots:
+        shots_array.append({
+            "created_at": shot.created_at,
+            "value": shot.dosage,
+        })
+
+    return JsonResponse(shots_array, safe=False)
+
+@require_GET
+def get_bites(request):
+    user = request.user
+
+    days_string = request.GET.get("days", 7)
+    days= int(days_string)
+
+    bites = BitesConsumedEntry.objects.filter(
+        user=user,
+        created_at__gte=datetime.now() - timedelta(days),
+    )
+
+    bites_array = []
+    for bite in bites:
+        bites_array.append({
+            "created_at": bite.created_at,
+            "bites_amount": bite.bites_amount,
+            "what_you_ate": bite.what_you_ate,
+        })
+
+    return JsonResponse(bites_array, safe=False)

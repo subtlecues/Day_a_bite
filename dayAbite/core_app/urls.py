@@ -12,4 +12,8 @@ urlpatterns = [
     path("encyclopedia/", views.encyclopedia_view, name="encyclopedia"),
     path('edit-measurement/<str:model>/<int:pk>/', views.edit_measurement, name='edit_measurement'),
     path('delete-measurement/<str:measurement_type>/<int:measurement_id>/', views.delete_measurement, name='delete_measurement'),
+    path('api/measurements', views.get_measurements),
+    path('api/shots', views.get_shots),
+    path('api/bites', views.get_bites)
+
 ]
